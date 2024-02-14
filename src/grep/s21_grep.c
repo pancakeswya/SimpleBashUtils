@@ -147,14 +147,16 @@ static void print_matches(FILE *file, char* restrict pattern, char* restrict fil
 }
 
 static void grep_pattern(int argc, char** argv, char* pattern, grep_opt* opt) {
-  FILE *file;
-  for (int i = get_file_index(argc, argv, opt); i < argc; i++) {
-    if ((file = fopen(argv[i], "r"))) {
-      print_matches(file, pattern, argv[i], opt);
-      fclose(file);
-    } else if (!(opt->flag_s)) {
-      fprintf(stderr, "s21_grep: %s: No such file or directory\n", argv[i]);
+  for (int i = get_file_index(argc, argv, opt); i < argc; ++i) {
+    FILE *file = fopen(argv[i], "r");
+    if (!file) {
+      if (!(opt.flag_s)) {
+        fprintf(stderr, "s21_grep: %s: No such file or directory\n", argv[i]);
+      }
+      continue;
     }
+    print_matches(file, pattern, argv[i], opt);
+    fclose(file);
   }
 }
 
@@ -216,8 +218,8 @@ static void parse_opt(int argc, char** argv, char* pattern, grep_opt* opt) {
 }
 
 int main(int argc, char* argv[]) {
-  grep_opt opt = {0};
-  char pattern[BUFFER] = {0};
+  grep_opt opt = {};
+  char pattern[BUFFER] = {};
   if (argc > 2) {
     parse_opt(argc, argv, pattern, &opt);
     grep_pattern(argc, argv, pattern, &opt);
